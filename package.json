@@ -1,0 +1,28 @@
+{
+  "name": "ed25519",
+  "version": "1.0.0",
+  "description": "ED25519 signatures ported to WebAssembly",
+  "main": "ed25519.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danimoh/ed25519.git"
+  },
+  "keywords": [
+    "ed25519",
+    "schnorr",
+    "signatures",
+    "webassembly",
+    "wasm",
+    "asm.js",
+    "javascript"
+  ],
+  "author": "danimoh",
+  "license": "Zlib",
+  "bugs": {
+    "url": "https://github.com/danimoh/ed25519/issues"
+  },
+  "homepage": "https://github.com/danimoh/ed25519#readme"
+}

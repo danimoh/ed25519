@@ -1,5 +1,5 @@
 const ED25519 = {
-    DIST_PATH: window.ED25519_DIST_PATH || 'dist/',
+    DIST_PATH: typeof(ED25519_DIST_PATH)!=='undefined'? ED25519_DIST_PATH : 'dist/',
 
     SEED_SIZE: 32,
     PUBLIC_KEY_SIZE: 32,
@@ -33,16 +33,23 @@ const ED25519 = {
         if (!this._handlerPromise) {
             this._handlerPromise = new Promise((resolve, reject) => {
                 // load the handler
-                var script = document.createElement('script');
-                script.onload = resolve;
-                script.onerror = reject;
-                script.src = ED25519.DIST_PATH + (window.WebAssembly? 'ed25519-wasm.js' : 'ed25519-asm.js');
-                document.body.appendChild(script);
+                if (typeof(document) !== 'undefined') {
+                    // we are in the browser
+                    var script = document.createElement('script');
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    script.src = ED25519.DIST_PATH + (typeof(WebAssembly)!=='undefined'? 'ed25519-wasm.js' : 'ed25519-asm.js');
+                    document.body.appendChild(script);
+                } else {
+                    // we are in node
+                    ED25519_HANDLER = require(ED25519.DIST_PATH + (typeof(WebAssembly)!=='undefined'? 'ed25519-wasm.js' : 'ed25519-asm.js'));
+                    resolve();
+                }
             })
             .then(() => new Promise((resolve, reject) => {
                 this._handler = ED25519_HANDLER({
-                    wasmBinaryFile: ED25519.DIST_PATH + 'ed25519-wasm.wasm',
-                    memoryInitializerPrefixURL: ED25519.DIST_PATH
+                    wasmBinaryFile: '../' + ED25519.DIST_PATH + 'ed25519-wasm.wasm',
+                    memoryInitializerPrefixURL: '../' + ED25519.DIST_PATH
                 });
                 // wait until the handler is ready
                 this._handler.onRuntimeInitialized = resolve;
@@ -196,4 +203,8 @@ const ED25519 = {
         out_sharedSecret.set(this._secretBuffer);
         this._privKeyBuffer.fill(0);
     }
+}
+
+if (typeof(module)!=='undefined') {
+    module.exports = ED25519;
 }

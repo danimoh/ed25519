@@ -13,7 +13,7 @@ to WebAssembly with an asm.js fallback and wrapped into a Javascript API.
 Performance
 -----------
 
-WebAssembly performance:
+WebAssembly in browser performance:
 
     Key generation: 105us (9508 per second)
     Message signing (short message): 106us (9458 per second)
@@ -21,13 +21,21 @@ WebAssembly performance:
     Scalar addition: 102us (9791 per second)
     Key exchange: 198us (5055 per second)
 
-asm.js fallback performance:
+asm.js fallback in browser performance:
 
     Key generation: 3031us (330 per second)
     Message signing (short message): 3195us (313 per second)
     Message verifying (short message): 11800us (85 per second)
     Scalar addition: 3403us (294 per second)
     Key exchange: 10484us (95 per second)
+
+WebAssembly in node.js performance:
+
+    Key generation: 82us (12195 per second)
+    Message signing (short message): 85us (11765 per second)
+    Message verifying (short message): 173us (5780 per second)
+    Scalar addition: 84us (11905 per second)
+    Key exchange: 179us (5587 per second)    
 
 Comparison to native binary compiled from C:
 
