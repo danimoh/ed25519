@@ -36,6 +36,15 @@ async function test() {
     getRandomValues(seed);
     await ED25519.createKeyPair(public_key, private_key, seed);
 
+    /* test whether we can derive the same public key from the private key */
+    await ED25519.derivePublicKey(other_public_key, private_key);
+    for (i = 0; i < 32; ++i) {
+        if (public_key[i] !== other_public_key[i]) {
+            throw Error("derived wrong public key");
+        }
+    }
+    console.log("derived correct public key");
+
     /* create signature on the message with the keypair */
     await ED25519.sign(signature, message, message_len, public_key, private_key);
 
@@ -87,6 +96,7 @@ async function test() {
 
 
     /* test performance */
+
     console.log('Performance tests (times in micro seconds):')
     console.log("testing seed generation performance: ");
     start = now();
@@ -103,6 +113,14 @@ async function test() {
     }
     end = now();
     console.log("per keypair", (end - start) * 1000 / i);
+
+    console.log("testing public key derivation performance: ");
+    start = now();
+    for (i = 0; i < 10000; ++i) {
+        await ED25519.derivePublicKey(public_key, private_key);
+    }
+    end = now();
+    console.log("per derivation", (end - start) * 1000 / i);    
 
     console.log("testing sign performance: ");
     start = now();
@@ -154,7 +172,7 @@ async function test() {
     end = now();
     console.log("per copy of publicKey + privateKey + signature", (end - start) * 1000 / i);
 
-    /*
+   /* 
     console.log("testing overhead for stackSave + stackAlloc + stackRestore");
     start = now();
     for (i = 0; i < 10000; ++i) {
@@ -175,6 +193,18 @@ async function test() {
     }
     end = now();
     console.log("per buffer creation for priv + pub + signature", (end - start) * 1000 / i);  
+
+    // private key decompression as it is done in the original supercop ed15519 implementation.
+    // The implementation that this fork is based on, removed the compression / decompression,
+    // which gives a performance gain of ~8%. Private keys are 64 byte vs 32 byte.
+    // See https://github.com/orlp/ed25519/commit/b0de745a0c1d92d2e5ec8bd2169d149056aeac1f#diff-8c43ca84c50aa9091e4d041082f4790e
+    console.log("testing overhead for private key decompression (one invocation of sha512):");
+    start = now();
+    for (i = 0; i < 10000; ++i) {
+        ED25519._handler._sha512(seed, 32, private_key);
+    }
+    end = now();
+    console.log("per sha512", (end - start) * 1000 / i);
     */
 }
 
@@ -184,7 +214,7 @@ test()
     console.log('tests finished.');
     clearTimeout(timeout);
 })
-.catch(() => {
-    console.error('an exception was thrown.');
+.catch(e => {
+    console.error('an exception was thrown.', e);
     clearTimeout(timeout);
 });

@@ -90,20 +90,39 @@ const ED25519 = {
 
 
     /**
-     * Creates a new key pair from the given seed. public_key must be a writable 32 byte buffer, private_key must be
+     * Creates a new key pair from the given seed. public_key must be a writable 32 byte buffer, private key must be
      * a writable 64 byte buffer and seed must be a 32 byte buffer.
+     * IMPORTANT: The private key gets deterministically computed from the seed, thus the seed is as confidential
+     * as the private key.
      */
-    createKeyPair: async function(out_publicKey, out_privateKey, seed) {
+    createKeyPair: async function(out_publicKey, out_privateKey, key_seed) {
         await this._awaitHandler();
-        if (seed.byteLength !== ED25519.SEED_SIZE
+        if (key_seed.byteLength !== ED25519.SEED_SIZE
             || out_publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE
             || out_privateKey.byteLength !== ED25519.PRIVATE_KEY_SIZE) {
             throw Error('Wrong buffer size.');
         }
-        this._seedBuffer.set(seed);
+        this._seedBuffer.set(key_seed);
         this._handler._ed25519_create_keypair(this._pubKeyPointer, this._privKeyPointer, this._seedPointer);
         out_publicKey.set(this._pubKeyBuffer);
         out_privateKey.set(this._privKeyBuffer);
+        this._seedBuffer.fill(0);
+        this._privKeyBuffer.fill(0);
+    },
+
+
+    /**
+     * Calculate the public key for a given private key.
+     */
+    derivePublicKey: async function(out_publicKey, privateKey) {
+        await this._awaitHandler();
+        if (out_publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE
+            || privateKey.byteLength !== ED25519.PRIVATE_KEY_SIZE) {
+            throw Error('Wrong buffer size.');
+        }
+        this._privKeyBuffer.set(privateKey);
+        this._handler._ed25519_public_key_derive(this._pubKeyPointer, this._privKeyPointer);
+        out_publicKey.set(this._pubKeyBuffer);
         this._privKeyBuffer.fill(0);
     },
 

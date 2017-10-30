@@ -9,11 +9,3 @@ unsigned char* get_static_memory_start() {
 unsigned int get_static_memory_size() {
     return STATIC_MEMORY_SIZE;
 }
-
-/*
-void test_fill_memory() {
-    for (int i=0; i<STATIC_MEMORY_SIZE; ++i) {
-        static_memory[i] = i % 256;
-    }
-}
-*/

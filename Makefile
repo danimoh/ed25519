@@ -30,7 +30,7 @@ emcc:
 	# compile to asm.js (might want to add -s ONLY_MY_CODE=1, see https://github.com/kripken/emscripten/issues/3955)
 	$(LINK_EMCC) -O3 add_scalar.o fe.o ge.o key_exchange.o keypair.o \
 		sc.o sha512.o sign.o verify.o memory.o \
-		-s EXPORTED_FUNCTIONS='["_ed25519_create_keypair","_ed25519_sign","_ed25519_verify","_ed25519_add_scalar","_ed25519_key_exchange","_get_static_memory_start","_get_static_memory_size"]' \
+		-s EXPORTED_FUNCTIONS='["_ed25519_create_keypair","_ed25519_sign","_ed25519_verify","_ed25519_add_scalar","_ed25519_key_exchange","_get_static_memory_start","_get_static_memory_size","_ed25519_public_key_derive"]' \
 		-s NO_EXIT_RUNTIME=1 -s MODULARIZE=1 -s EXPORT_NAME="'ED25519_HANDLER'" \
 		-s LIBRARY_DEPS_TO_AUTOEXPORT='[]' -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE="[]" -s EXPORTED_RUNTIME_METHODS='[]' \
 		-s NO_FILESYSTEM=1 -s DISABLE_EXCEPTION_CATCHING=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1 \
@@ -40,7 +40,7 @@ emcc:
 	# compile to wasm
 	$(LINK_EMCC) -O3 add_scalar.o fe.o ge.o key_exchange.o keypair.o \
 		sc.o sha512.o sign.o verify.o memory.o \
-		-s EXPORTED_FUNCTIONS='["_ed25519_create_keypair","_ed25519_sign","_ed25519_verify","_ed25519_add_scalar","_ed25519_key_exchange","_get_static_memory_start","_get_static_memory_size"]' \
+		-s EXPORTED_FUNCTIONS='["_ed25519_create_keypair","_ed25519_sign","_ed25519_verify","_ed25519_add_scalar","_ed25519_key_exchange","_get_static_memory_start","_get_static_memory_size","_ed25519_public_key_derive"]' \
 		-s NO_EXIT_RUNTIME=1 -s MODULARIZE=1 -s EXPORT_NAME="'ED25519_HANDLER'" \
 		-s LIBRARY_DEPS_TO_AUTOEXPORT='[]' -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE="[]" -s EXPORTED_RUNTIME_METHODS='[]' \
 		-s NO_FILESYSTEM=1 -s DISABLE_EXCEPTION_CATCHING=1 \
