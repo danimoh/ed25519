@@ -131,10 +131,11 @@ const ED25519 = {
      * Creates a signature of the given message with the given key pair. signature must be a writable 64 byte buffer.
      * message must have at least message_len bytes to be read and must fit into this._messageBuffer.
      */
-    sign: async function(out_signature, message, messageLength, publicKey, privateKey) {
+    sign: async function(out_signature, message, publicKey, privateKey) {
         await this._awaitHandler();
+        const messageLength = message.byteLength;
         if (out_signature.byteLength !== ED25519.SIGNATURE_SIZE
-            || message.byteLength < messageLength || message.byteLength > this._messageBuffer.byteLength
+            || messageLength > this._messageBuffer.byteLength
             || publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE
             || privateKey.byteLength !== ED25519.PRIVATE_KEY_SIZE) {
             throw Error('Wrong buffer size.');
@@ -154,10 +155,11 @@ const ED25519 = {
      * message must have at least message_len bytes to be read and must fit this._messageBuffer.
      * Returns 1 if the signature matches, 0 otherwise.
      */
-    verify: async function(signature, message, messageLength, publicKey) {
+    verify: async function(signature, message, publicKey) {
         await this._awaitHandler();
+        const messageLength = message.byteLength;
         if (signature.byteLength !== ED25519.SIGNATURE_SIZE
-            || message.byteLength < messageLength || message.byteLength > this._messageBuffer.byteLength
+            || message.byteLength > this._messageBuffer.byteLength
             || publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE) {
             throw Error('Wrong buffer size.');
         }

@@ -30,7 +30,6 @@ async function test() {
         signature = new Uint8Array(64);
     let start, end, i;
     const message = Uint8Array.from('Hello world.'.split('').map(c => c.charCodeAt(0)));
-    const message_len = message.byteLength;
 
     /* create a random seed, and a keypair out of that seed */
     getRandomValues(seed);
@@ -46,10 +45,10 @@ async function test() {
     console.log("derived correct public key");
 
     /* create signature on the message with the keypair */
-    await ED25519.sign(signature, message, message_len, public_key, private_key);
+    await ED25519.sign(signature, message, public_key, private_key);
 
     /* verify the signature */
-    if (await ED25519.verify(signature, message, message_len, public_key)) {
+    if (await ED25519.verify(signature, message, public_key)) {
         console.log("valid signature");
     } else {
         throw Error("invalid signature");
@@ -60,10 +59,10 @@ async function test() {
     await ED25519.addScalar(public_key, private_key, scalar);
 
     /* create signature with the new keypair */
-    await ED25519.sign(signature, message, message_len, public_key, private_key);
+    await ED25519.sign(signature, message, public_key, private_key);
 
     /* verify the signature with the new keypair */
-    if (await ED25519.verify(signature, message, message_len, public_key)) {
+    if (await ED25519.verify(signature, message, public_key)) {
         console.log("valid signature\n");
     } else {
         throw Error("invalid signature\n");
@@ -71,7 +70,7 @@ async function test() {
 
     /* make a slight adjustment and verify again */
     signature[44] ^= 0x10;
-    if (await ED25519.verify(signature, message, message_len, public_key)) {
+    if (await ED25519.verify(signature, message, public_key)) {
         throw Error("did not detect signature change\n");
     } else {
         console.log("correctly detected signature change\n");
@@ -125,7 +124,7 @@ async function test() {
     console.log("testing sign performance: ");
     start = now();
     for (i = 0; i < 10000; ++i) {
-        await ED25519.sign(signature, message, message_len, public_key, private_key);
+        await ED25519.sign(signature, message, public_key, private_key);
     }
     end = now();
     console.log("per signature", (end - start) * 1000 / i);
@@ -133,7 +132,7 @@ async function test() {
     console.log("testing verify performance: ");
     start = now();
     for (i = 0; i < 10000; ++i) {
-        await ED25519.verify(signature, message, message_len, public_key);
+        await ED25519.verify(signature, message, public_key);
     }
     end = now();
     console.log("per verification", (end - start) * 1000 / i);
