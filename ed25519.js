@@ -1,37 +1,7 @@
-const ED25519 = {
-    DIST_PATH: typeof(ED25519_DIST_PATH)!=='undefined'? ED25519_DIST_PATH : 'dist/',
-
-    SEED_SIZE: 32,
-    PUBLIC_KEY_SIZE: 32,
-    PRIVATE_KEY_SIZE: 64,
-    SIGNATURE_SIZE: 64,
-    SCALAR_SIZE: 32,
-    SECRET_SIZE: 32,
-    
-    _instancePromise: null,
-    _handler: null,
-
-    _seedBuffer: null,
-    _pubKeyBuffer: null,
-    _privKeyBuffer: null,
-    _signatureBuffer: null,
-    _scalarBuffer: null,
-    _secretBuffer: null,
-    _messageBuffer: null,
-
-    _seedPointer: null,
-    _pubKeyPointer: null,
-    _privKeyPointer: null,
-    _signaturePointer: null,
-    _scalarPointer: null,
-    _secretPointer: null,
-    _messagePointer: null,
-
-    _handler: null,
-    _handlerPromise: null,
-    _awaitHandler: function() {
-        if (!this._handlerPromise) {
-            this._handlerPromise = new Promise((resolve, reject) => {
+class ED25519 {
+    static async _awaitHandler() {
+        if (!ED25519._handlerPromise) {
+            ED25519._handlerPromise = new Promise((resolve, reject) => {
                 // load the handler
                 if (typeof(document) !== 'undefined') {
                     // we are in the browser
@@ -42,51 +12,51 @@ const ED25519 = {
                     document.body.appendChild(script);
                 } else {
                     // we are in node
-                    ED25519_HANDLER = require(ED25519.DIST_PATH + (typeof(WebAssembly)!=='undefined'? 'ed25519-wasm.js' : 'ed25519-asm.js'));
+                    global.ED25519_HANDLER = require(ED25519.DIST_PATH + (typeof(WebAssembly)!=='undefined'? 'ed25519-wasm.js' : 'ed25519-asm.js'));
                     resolve();
                 }
             })
             .then(() => new Promise((resolve, reject) => {
-                this._handler = ED25519_HANDLER({
+                ED25519._handler = ED25519_HANDLER({
                     wasmBinaryFile: '../' + ED25519.DIST_PATH + 'ed25519-wasm.wasm',
                     memoryInitializerPrefixURL: '../' + ED25519.DIST_PATH
                 });
                 // wait until the handler is ready
-                this._handler.onRuntimeInitialized = resolve;
+                ED25519._handler.onRuntimeInitialized = resolve;
             }))
             .then(() => {
                 console.log('got the handler');
-                const memoryStart = this._handler._get_static_memory_start();
-                const memorySize = this._handler._get_static_memory_size();
+                const memoryStart = ED25519._handler._get_static_memory_start();
+                const memorySize = ED25519._handler._get_static_memory_size();
                 if (memorySize < ED25519.SEED_SIZE + ED25519.PUBLIC_KEY_SIZE + ED25519.PRIVATE_KEY_SIZE
                     + ED25519.SIGNATURE_SIZE + ED25519.SCALAR_SIZE + ED25519.SECRET_SIZE) {
                     throw Error('Static memory too small');
                 }
                 let byteOffset = memoryStart;
-                this._seedPointer = byteOffset;
-                this._seedBuffer = new Uint8Array(this._handler.HEAP8.buffer, byteOffset, ED25519.SEED_SIZE);
+                ED25519._seedPointer = byteOffset;
+                ED25519._seedBuffer = new Uint8Array(ED25519._handler.HEAP8.buffer, byteOffset, ED25519.SEED_SIZE);
                 byteOffset += ED25519.SEED_SIZE;
-                this._pubKeyPointer = byteOffset;
-                this._pubKeyBuffer = new Uint8Array(this._handler.HEAP8.buffer, byteOffset, ED25519.PUBLIC_KEY_SIZE);
+                ED25519._pubKeyPointer = byteOffset;
+                ED25519._pubKeyBuffer = new Uint8Array(ED25519._handler.HEAP8.buffer, byteOffset, ED25519.PUBLIC_KEY_SIZE);
                 byteOffset += ED25519.PUBLIC_KEY_SIZE;
-                this._privKeyPointer = byteOffset;
-                this._privKeyBuffer = new Uint8Array(this._handler.HEAP8.buffer, byteOffset, ED25519.PRIVATE_KEY_SIZE);
+                ED25519._privKeyPointer = byteOffset;
+                ED25519._privKeyBuffer = new Uint8Array(ED25519._handler.HEAP8.buffer, byteOffset, ED25519.PRIVATE_KEY_SIZE);
                 byteOffset += ED25519.PRIVATE_KEY_SIZE;
-                this._signaturePointer = byteOffset;
-                this._signatureBuffer = new Uint8Array(this._handler.HEAP8.buffer, byteOffset, ED25519.SIGNATURE_SIZE);
+                ED25519._signaturePointer = byteOffset;
+                ED25519._signatureBuffer = new Uint8Array(ED25519._handler.HEAP8.buffer, byteOffset, ED25519.SIGNATURE_SIZE);
                 byteOffset += ED25519.SIGNATURE_SIZE;
-                this._scalarPointer = byteOffset;
-                this._scalarBuffer = new Uint8Array(this._handler.HEAP8.buffer, byteOffset, ED25519.SCALAR_SIZE);
+                ED25519._scalarPointer = byteOffset;
+                ED25519._scalarBuffer = new Uint8Array(ED25519._handler.HEAP8.buffer, byteOffset, ED25519.SCALAR_SIZE);
                 byteOffset += ED25519.SCALAR_SIZE;
-                this._secretPointer = byteOffset;
-                this._secretBuffer = new Uint8Array(this._handler.HEAP8.buffer, byteOffset, ED25519.SECRET_SIZE);
+                ED25519._secretPointer = byteOffset;
+                ED25519._secretBuffer = new Uint8Array(ED25519._handler.HEAP8.buffer, byteOffset, ED25519.SECRET_SIZE);
                 byteOffset += ED25519.SECRET_SIZE;
-                this._messagePointer = byteOffset;
-                this._messageBuffer = new Uint8Array(this._handler.HEAP8.buffer, byteOffset, (memoryStart + memorySize) - byteOffset);
+                ED25519._messagePointer = byteOffset;
+                ED25519._messageBuffer = new Uint8Array(ED25519._handler.HEAP8.buffer, byteOffset, (memoryStart + memorySize) - byteOffset);
             });
         }
-        return this._handlerPromise;
-    },
+        return await ED25519._handlerPromise;
+    }
 
 
     /**
@@ -95,91 +65,91 @@ const ED25519 = {
      * IMPORTANT: The private key gets deterministically computed from the seed, thus the seed is as confidential
      * as the private key.
      */
-    createKeyPair: async function(out_publicKey, out_privateKey, key_seed) {
-        await this._awaitHandler();
+    static async createKeyPair(out_publicKey, out_privateKey, key_seed) {
+        await ED25519._awaitHandler();
         if (key_seed.byteLength !== ED25519.SEED_SIZE
             || out_publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE
             || out_privateKey.byteLength !== ED25519.PRIVATE_KEY_SIZE) {
             throw Error('Wrong buffer size.');
         }
-        this._seedBuffer.set(key_seed);
-        this._handler._ed25519_create_keypair(this._pubKeyPointer, this._privKeyPointer, this._seedPointer);
-        out_publicKey.set(this._pubKeyBuffer);
-        out_privateKey.set(this._privKeyBuffer);
-        this._seedBuffer.fill(0);
-        this._privKeyBuffer.fill(0);
-    },
+        ED25519._seedBuffer.set(key_seed);
+        ED25519._handler._ed25519_create_keypair(ED25519._pubKeyPointer, ED25519._privKeyPointer, ED25519._seedPointer);
+        out_publicKey.set(ED25519._pubKeyBuffer);
+        out_privateKey.set(ED25519._privKeyBuffer);
+        ED25519._seedBuffer.fill(0);
+        ED25519._privKeyBuffer.fill(0);
+    }
 
 
     /**
      * Calculate the public key for a given private key.
      */
-    derivePublicKey: async function(out_publicKey, privateKey) {
-        await this._awaitHandler();
+    static async derivePublicKey(out_publicKey, privateKey) {
+        await ED25519._awaitHandler();
         if (out_publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE
             || privateKey.byteLength !== ED25519.PRIVATE_KEY_SIZE) {
             throw Error('Wrong buffer size.');
         }
-        this._privKeyBuffer.set(privateKey);
-        this._handler._ed25519_public_key_derive(this._pubKeyPointer, this._privKeyPointer);
-        out_publicKey.set(this._pubKeyBuffer);
-        this._privKeyBuffer.fill(0);
-    },
+        ED25519._privKeyBuffer.set(privateKey);
+        ED25519._handler._ed25519_public_key_derive(ED25519._pubKeyPointer, ED25519._privKeyPointer);
+        out_publicKey.set(ED25519._pubKeyBuffer);
+        ED25519._privKeyBuffer.fill(0);
+    }
 
 
     /**
      * Creates a signature of the given message with the given key pair. signature must be a writable 64 byte buffer.
-     * message must have at least message_len bytes to be read and must fit into this._messageBuffer.
+     * message must have at least message_len bytes to be read and must fit into ED25519._messageBuffer.
      */
-    sign: async function(out_signature, message, publicKey, privateKey) {
-        await this._awaitHandler();
+    static async sign(out_signature, message, publicKey, privateKey) {
+        await ED25519._awaitHandler();
         const messageLength = message.byteLength;
         if (out_signature.byteLength !== ED25519.SIGNATURE_SIZE
-            || messageLength > this._messageBuffer.byteLength
+            || messageLength > ED25519._messageBuffer.byteLength
             || publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE
             || privateKey.byteLength !== ED25519.PRIVATE_KEY_SIZE) {
             throw Error('Wrong buffer size.');
         }
-        this._messageBuffer.set(message);
-        this._pubKeyBuffer.set(publicKey);
-        this._privKeyBuffer.set(privateKey);
-        this._handler._ed25519_sign(this._signaturePointer, this._messagePointer, messageLength,
-            this._pubKeyPointer, this._privKeyPointer);
-        out_signature.set(this._signatureBuffer);
-        this._privKeyBuffer.fill(0);
-    },
+        ED25519._messageBuffer.set(message);
+        ED25519._pubKeyBuffer.set(publicKey);
+        ED25519._privKeyBuffer.set(privateKey);
+        ED25519._handler._ed25519_sign(ED25519._signaturePointer, ED25519._messagePointer, messageLength,
+            ED25519._pubKeyPointer, ED25519._privKeyPointer);
+        out_signature.set(ED25519._signatureBuffer);
+        ED25519._privKeyBuffer.fill(0);
+    }
 
 
     /**
      * Verifies the signature on the given message using public_key. signature must be a readable 64 byte buffer.
-     * message must have at least message_len bytes to be read and must fit this._messageBuffer.
+     * message must have at least message_len bytes to be read and must fit ED25519._messageBuffer.
      * Returns 1 if the signature matches, 0 otherwise.
      */
-    verify: async function(signature, message, publicKey) {
-        await this._awaitHandler();
+    static async verify(signature, message, publicKey) {
+        await ED25519._awaitHandler();
         const messageLength = message.byteLength;
         if (signature.byteLength !== ED25519.SIGNATURE_SIZE
-            || message.byteLength > this._messageBuffer.byteLength
+            || message.byteLength > ED25519._messageBuffer.byteLength
             || publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE) {
             throw Error('Wrong buffer size.');
         }
-        this._signatureBuffer.set(signature);
-        this._messageBuffer.set(message);
-        this._pubKeyBuffer.set(publicKey);
-        return this._handler._ed25519_verify(this._signaturePointer, this._messagePointer, messageLength,
-            this._pubKeyPointer);
-    },
+        ED25519._signatureBuffer.set(signature);
+        ED25519._messageBuffer.set(message);
+        ED25519._pubKeyBuffer.set(publicKey);
+        return ED25519._handler._ed25519_verify(ED25519._signaturePointer, ED25519._messagePointer, messageLength,
+            ED25519._pubKeyPointer);
+    }
 
 
     /**
      * Adds scalar to the given key pair where scalar is a 32 byte buffer (possibly generated with createSeed),
      * generating a new key pair. You can calculate the public key sum without knowing the private key and vice versa
-     * by passing in null for the key you don't know. This is useful for enforcing randomness on a key pair by a third
+     * by passing in null for the key you don't know. ED25519 is useful for enforcing randomness on a key pair by a third
      * party while only knowing the public key, among other things. Warning: the last bit of the scalar is ignored - if
      * comparing scalars make sure to clear it with scalar[31] &= 127.
      */
-    addScalar: async function(publicKey, privateKey, scalar) {
-        await this._awaitHandler();
+    static async addScalar(publicKey, privateKey, scalar) {
+        await ED25519._awaitHandler();
         if ((publicKey === null && privateKey === null)
             || (publicKey !== null && publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE)
             || (privateKey !== null && privateKey.byteLength !== ED25519.PRIVATE_KEY_SIZE)
@@ -187,23 +157,23 @@ const ED25519 = {
             throw Error('Illegal arguments.');
         }
         if (publicKey) {
-            this._pubKeyBuffer.set(publicKey);
+            ED25519._pubKeyBuffer.set(publicKey);
         }
         if (privateKey) {
-            this._privKeyBuffer.set(privateKey);
+            ED25519._privKeyBuffer.set(privateKey);
         }
-        this._handler._ed25519_add_scalar(
-            publicKey? this._pubKeyPointer : 0 /* NULL pointer */,
-            privateKey? this._privKeyPointer : 0 /* NULL pointer */,
-            this._scalarPointer);
+        ED25519._handler._ed25519_add_scalar(
+            publicKey? ED25519._pubKeyPointer : 0 /* NULL pointer */,
+            privateKey? ED25519._privKeyPointer : 0 /* NULL pointer */,
+            ED25519._scalarPointer);
         if (publicKey) {
-            publicKey.set(this._pubKeyBuffer);
+            publicKey.set(ED25519._pubKeyBuffer);
         }
         if (privateKey) {
-            privateKey.set(this._privKeyBuffer);
-            this._privKeyBuffer.fill(0);
+            privateKey.set(ED25519._privKeyBuffer);
+            ED25519._privKeyBuffer.fill(0);
         }
-    },
+    }
 
 
     /**
@@ -211,21 +181,51 @@ const ED25519 = {
      * hash the shared secret before using it. sharedSecret must be a 32 byte writable buffer where the shared secret
      * will be stored.
      */
-    keyExchange: async function(out_sharedSecret, publicKey, privateKey) {
-        await this._awaitHandler();
+    static async keyExchange(out_sharedSecret, publicKey, privateKey) {
+        await ED25519._awaitHandler();
         if (out_sharedSecret.byteLength !== ED25519.SECRET_SIZE
             || publicKey.byteLength !== ED25519.PUBLIC_KEY_SIZE
             || privateKey.byteLength !== ED25519.PRIVATE_KEY_SIZE) {
             throw Error('Wrong buffer size.');
         }
-        this._pubKeyBuffer.set(publicKey);
-        this._privKeyBuffer.set(privateKey);
-        this._handler._ed25519_key_exchange(this._secretPointer, this._pubKeyPointer, this._privKeyPointer);
-        out_sharedSecret.set(this._secretBuffer);
-        this._privKeyBuffer.fill(0);
+        ED25519._pubKeyBuffer.set(publicKey);
+        ED25519._privKeyBuffer.set(privateKey);
+        ED25519._handler._ed25519_key_exchange(ED25519._secretPointer, ED25519._pubKeyPointer, ED25519._privKeyPointer);
+        out_sharedSecret.set(ED25519._secretBuffer);
+        ED25519._privKeyBuffer.fill(0);
     }
 }
 
-if (typeof(module)!=='undefined') {
+ED25519.DIST_PATH = typeof(ED25519_DIST_PATH)!=='undefined'? ED25519_DIST_PATH : 'dist/';
+ED25519.SEED_SIZE = 32;
+ED25519.PUBLIC_KEY_SIZE = 32;
+ED25519.PRIVATE_KEY_SIZE = 64;
+ED25519.SIGNATURE_SIZE = 64;
+ED25519.SCALAR_SIZE = 32;
+ED25519.SECRET_SIZE = 32;
+
+ED25519._seedBuffer = null;
+ED25519._pubKeyBuffer = null;
+ED25519._privKeyBuffer = null;
+ED25519._signatureBuffer = null;
+ED25519._scalarBuffer = null;
+ED25519._secretBuffer = null;
+ED25519._messageBuffer = null;
+
+ED25519._seedPointer = null;
+ED25519._pubKeyPointer = null;
+ED25519._privKeyPointer = null;
+ED25519._signaturePointer = null;
+ED25519._scalarPointer = null;
+ED25519._secretPointer = null;
+ED25519._messagePointer = null;
+
+ED25519._handler = null;
+ED25519._handlerPromise = null;
+
+if (typeof(Class) !== 'undefined') {
+    // support for nimiqs class system
+    Class.register(ED25519);
+} else if (typeof(module) !== 'undefined') {
     module.exports = ED25519;
 }
