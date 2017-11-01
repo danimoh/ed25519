@@ -1,5 +1,5 @@
 class ED25519 {
-    static async _awaitHandler() {
+    static _awaitHandler() {
         if (!ED25519._handlerPromise) {
             ED25519._handlerPromise = new Promise((resolve, reject) => {
                 // load the handler
@@ -55,7 +55,7 @@ class ED25519 {
                 ED25519._messageBuffer = new Uint8Array(ED25519._handler.HEAP8.buffer, byteOffset, (memoryStart + memorySize) - byteOffset);
             });
         }
-        return await ED25519._handlerPromise;
+        return ED25519._handlerPromise;
     }
 
 
