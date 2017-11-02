@@ -8,12 +8,12 @@ if (typeof(window) === 'undefined') {
         const [seconds, nanos] = process.hrtime();
         return seconds * 1000 + nanos / 1000000;
     };
-
-    ED25519_DIST_PATH = './dist/';
-    ED25519 = require('../ed25519.js');
+    global.ED25519 = require('../ed25519.js');
+    ED25519.setPath('./dist/');
 } else {
     getRandomValues = window.crypto.getRandomValues.bind(window.crypto);
     now = performance.now.bind(performance);
+    ED25519.setPath('../dist/');
 }
 
 async function test() {

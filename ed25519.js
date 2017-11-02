@@ -8,18 +8,21 @@ class ED25519 {
                     var script = document.createElement('script');
                     script.onload = resolve;
                     script.onerror = reject;
-                    script.src = ED25519.DIST_PATH + (typeof(WebAssembly)!=='undefined'? 'ed25519-wasm.js' : 'ed25519-asm.js');
+                    script.src = ED25519._path + (typeof(WebAssembly)!=='undefined'? 'ed25519-wasm.js' : 'ed25519-asm.js');
                     document.body.appendChild(script);
                 } else {
                     // we are in node
-                    global.ED25519_HANDLER = require(ED25519.DIST_PATH + (typeof(WebAssembly)!=='undefined'? 'ed25519-wasm.js' : 'ed25519-asm.js'));
+                    if (typeof(WebAssembly)==='undefined') {
+                        throw Error('Please use a node version with WebAssembly support.');
+                    }
+                    global.ED25519_HANDLER = require(ED25519._path + 'ed25519-wasm.js');
                     resolve();
                 }
             })
             .then(() => new Promise((resolve, reject) => {
                 ED25519._handler = ED25519_HANDLER({
-                    wasmBinaryFile: '../' + ED25519.DIST_PATH + 'ed25519-wasm.wasm',
-                    memoryInitializerPrefixURL: '../' + ED25519.DIST_PATH
+                    wasmBinaryFile: ED25519._path + 'ed25519-wasm.wasm',
+                    memoryInitializerPrefixURL: ED25519._path
                 });
                 // wait until the handler is ready
                 ED25519._handler.onRuntimeInitialized = resolve;
@@ -56,6 +59,14 @@ class ED25519 {
             });
         }
         return ED25519._handlerPromise;
+    }
+
+
+    static setPath(path) {
+        if (ED25519._handlerPromise) {
+            throw Error('path must be set before first call of any method');
+        }
+        ED25519._path = path;
     }
 
 
@@ -196,7 +207,6 @@ class ED25519 {
     }
 }
 
-ED25519.DIST_PATH = typeof(ED25519_DIST_PATH)!=='undefined'? ED25519_DIST_PATH : '/node-modules/ed25519/dist/';
 ED25519.SEED_SIZE = 32;
 ED25519.PUBLIC_KEY_SIZE = 32;
 ED25519.PRIVATE_KEY_SIZE = 64;
@@ -220,12 +230,14 @@ ED25519._scalarPointer = null;
 ED25519._secretPointer = null;
 ED25519._messagePointer = null;
 
+ED25519._path = '../node_modules/ed25519/dist/';
 ED25519._handler = null;
 ED25519._handlerPromise = null;
 
 if (typeof(Class) !== 'undefined') {
     // support for nimiqs class system
     Class.register(ED25519);
-} else if (typeof(module) !== 'undefined') {
+}
+if (typeof(module) !== 'undefined') {
     module.exports = ED25519;
 }
