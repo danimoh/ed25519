@@ -20,8 +20,7 @@ async function test() {
     console.log(`Test with${typeof(WebAssembly)!=='undefined'?'':'out'} WebAssembly support.`);
 
     const public_key = new Uint8Array(32),
-        private_key = new Uint8Array(64),
-        seed = new Uint8Array(32),
+        private_key = new Uint8Array(32),
         scalar = new Uint8Array(32),
         other_public_key = new Uint8Array(32),
         other_private_key = new Uint8Array(64),
@@ -31,18 +30,9 @@ async function test() {
     let start, end, i;
     const message = Uint8Array.from('Hello world.'.split('').map(c => c.charCodeAt(0)));
 
-    /* create a random seed, and a keypair out of that seed */
-    getRandomValues(seed);
-    await ED25519.createKeyPair(public_key, private_key, seed);
-
-    /* test whether we can derive the same public key from the private key */
-    await ED25519.derivePublicKey(other_public_key, private_key);
-    for (i = 0; i < 32; ++i) {
-        if (public_key[i] !== other_public_key[i]) {
-            throw Error("derived wrong public key");
-        }
-    }
-    console.log("derived correct public key");
+    /* create a random private key and derive the public key */
+    getRandomValues(private_key);
+    await ED25519.derivePublicKey(public_key, private_key);
 
     /* create signature on the message with the keypair */
     await ED25519.sign(signature, message, public_key, private_key);
@@ -54,20 +44,6 @@ async function test() {
         throw Error("invalid signature");
     }
 
-    /* create scalar and add it to the keypair */
-    getRandomValues(scalar);
-    await ED25519.addScalar(public_key, private_key, scalar);
-
-    /* create signature with the new keypair */
-    await ED25519.sign(signature, message, public_key, private_key);
-
-    /* verify the signature with the new keypair */
-    if (await ED25519.verify(signature, message, public_key)) {
-        console.log("valid signature\n");
-    } else {
-        throw Error("invalid signature\n");
-    }
-
     /* make a slight adjustment and verify again */
     signature[44] ^= 0x10;
     if (await ED25519.verify(signature, message, public_key)) {
@@ -76,42 +52,17 @@ async function test() {
         console.log("correctly detected signature change\n");
     }
 
-    /* generate two keypairs for testing key exchange */
-    getRandomValues(seed);
-    await ED25519.createKeyPair(public_key, private_key, seed);
-    getRandomValues(seed);
-    await ED25519.createKeyPair(other_public_key, other_private_key, seed);
-
-    /* create two shared secrets - from both perspectives - and check if they're equal */
-    await ED25519.keyExchange(shared_secret, other_public_key, private_key);
-    await ED25519.keyExchange(other_shared_secret, public_key, other_private_key);
-
-    for (i = 0; i < 32; ++i) {
-        if (shared_secret[i] != other_shared_secret[i]) {
-            throw Error("key exchange was incorrect\n");
-        }
-    }
-    console.log("key exchange was correct\n");
-
 
     /* test performance */
 
     console.log('Performance tests (times in micro seconds):')
-    console.log("testing seed generation performance: ");
+    console.log("testing private key generation performance: ");
     start = now();
     for (i = 0; i < 10000; ++i) {
-        getRandomValues(seed);
+        getRandomValues(private_key);
     }
     end = now();
-    console.log("per seed:", (end - start) * 1000 / i);
-
-    console.log("testing key generation performance: ");
-    start = now();
-    for (i = 0; i < 10000; ++i) {
-        await ED25519.createKeyPair(public_key, private_key, seed);
-    }
-    end = now();
-    console.log("per keypair", (end - start) * 1000 / i);
+    console.log("per private key:", (end - start) * 1000 / i);
 
     console.log("testing public key derivation performance: ");
     start = now();
@@ -136,30 +87,6 @@ async function test() {
     }
     end = now();
     console.log("per verification", (end - start) * 1000 / i);
-
-    console.log("testing keypair scalar addition performance: ");
-    start = now();
-    for (i = 0; i < 10000; ++i) {
-        await ED25519.addScalar(public_key, private_key, scalar);
-    }
-    end = now();
-    console.log("per scalar addition", (end - start) * 1000 / i);
-
-    console.log("testing public key scalar addition performance: ");
-    start = now();
-    for (i = 0; i < 10000; ++i) {
-        await ED25519.addScalar(public_key, null, scalar);
-    }
-    end = now();
-    console.log("per public key scalar addition", (end - start) * 1000 / i);
-
-    console.log("testing key exchange performance: ");
-    start = now();
-    for (i = 0; i < 10000; ++i) {
-        await ED25519.keyExchange(shared_secret, other_public_key, private_key);
-    }
-    end = now();
-    console.log("per shared secret", (end - start) * 1000 / i);
 
     console.log("testing overhead by copy to the webassembly memory");
     start = now();
@@ -192,18 +119,6 @@ async function test() {
     }
     end = now();
     console.log("per buffer creation for priv + pub + signature", (end - start) * 1000 / i);  
-
-    // private key decompression as it is done in the original supercop ed15519 implementation.
-    // The implementation that this fork is based on, removed the compression / decompression,
-    // which gives a performance gain of ~8%. Private keys are 64 byte vs 32 byte.
-    // See https://github.com/orlp/ed25519/commit/b0de745a0c1d92d2e5ec8bd2169d149056aeac1f#diff-8c43ca84c50aa9091e4d041082f4790e
-    console.log("testing overhead for private key decompression (one invocation of sha512):");
-    start = now();
-    for (i = 0; i < 10000; ++i) {
-        ED25519._handler._sha512(seed, 32, private_key);
-    }
-    end = now();
-    console.log("per sha512", (end - start) * 1000 / i);
     */
 }
 

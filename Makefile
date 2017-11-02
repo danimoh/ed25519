@@ -16,10 +16,8 @@ COMPILE_EMCC = emcc -c -O3	# Command to compile a module from .c to .o
 LINK_EMCC =	emcc -O3				# Command to link a program
 
 emcc:
-	$(COMPILE_EMCC) src/add_scalar.c -o add_scalar.o
 	$(COMPILE_EMCC) src/fe.c -o fe.o
 	$(COMPILE_EMCC) src/ge.c -o ge.o
-	$(COMPILE_EMCC) src/key_exchange.c -o key_exchange.o
 	$(COMPILE_EMCC) src/keypair.c -o keypair.o
 	$(COMPILE_EMCC) src/sc.c -o sc.o
 	$(COMPILE_EMCC) src/sha512.c -o sha512.o
@@ -28,9 +26,8 @@ emcc:
 	$(COMPILE_EMCC) src/memory.c -o memory.o
 
 	# compile to asm.js (might want to add -s ONLY_MY_CODE=1, see https://github.com/kripken/emscripten/issues/3955)
-	$(LINK_EMCC) -O3 add_scalar.o fe.o ge.o key_exchange.o keypair.o \
-		sc.o sha512.o sign.o verify.o memory.o \
-		-s EXPORTED_FUNCTIONS='["_ed25519_create_keypair","_ed25519_sign","_ed25519_verify","_ed25519_add_scalar","_ed25519_key_exchange","_get_static_memory_start","_get_static_memory_size","_ed25519_public_key_derive"]' \
+	$(LINK_EMCC) -O3 fe.o ge.o keypair.o sc.o sha512.o sign.o verify.o memory.o \
+		-s EXPORTED_FUNCTIONS='["_ed25519_sign","_ed25519_verify","_get_static_memory_start","_get_static_memory_size","_ed25519_public_key_derive"]' \
 		-s NO_EXIT_RUNTIME=1 -s MODULARIZE=1 -s EXPORT_NAME="'ED25519_HANDLER'" \
 		-s LIBRARY_DEPS_TO_AUTOEXPORT='[]' -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE="[]" -s EXPORTED_RUNTIME_METHODS='[]' \
 		-s NO_FILESYSTEM=1 -s DISABLE_EXCEPTION_CATCHING=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1 \
@@ -38,9 +35,8 @@ emcc:
 		-o dist/ed25519-asm.js
 	
 	# compile to wasm
-	$(LINK_EMCC) -O3 add_scalar.o fe.o ge.o key_exchange.o keypair.o \
-		sc.o sha512.o sign.o verify.o memory.o \
-		-s EXPORTED_FUNCTIONS='["_ed25519_create_keypair","_ed25519_sign","_ed25519_verify","_ed25519_add_scalar","_ed25519_key_exchange","_get_static_memory_start","_get_static_memory_size","_ed25519_public_key_derive"]' \
+	$(LINK_EMCC) -O3 fe.o ge.o keypair.o sc.o sha512.o sign.o verify.o memory.o \
+		-s EXPORTED_FUNCTIONS='["_ed25519_sign","_ed25519_verify","_get_static_memory_start","_get_static_memory_size","_ed25519_public_key_derive"]' \
 		-s NO_EXIT_RUNTIME=1 -s MODULARIZE=1 -s EXPORT_NAME="'ED25519_HANDLER'" \
 		-s LIBRARY_DEPS_TO_AUTOEXPORT='[]' -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE="[]" -s EXPORTED_RUNTIME_METHODS='[]' \
 		-s NO_FILESYSTEM=1 -s DISABLE_EXCEPTION_CATCHING=1 \
@@ -53,9 +49,8 @@ emcc:
 	# The llvm backend must then be specified in /home/.emscripten as LLVM_ROOT.
 	# If you get the error "Expected wasm_compiler_rt.a to already be built", create a build first without -s WASM=1 and without EMCC_WASM_BACKEND=1.
 	# Note that EMCC still outputs a small .js file. This however only contains side module logic and can be ignored.
-	#EMCC_WASM_BACKEND=1 $(LINK_EMCC) add_scalar.o fe.o ge.o key_exchange.o keypair.o \
-	#	sc.o sha512.o sign.o verify.o memory.o \
-	#	-s EXPORTED_FUNCTIONS='["_ed25519_create_keypair","_ed25519_sign","_ed25519_verify","_ed25519_add_scalar","_ed25519_key_exchange","_get_static_memory_start","_get_static_memory_size"]' \
+	#EMCC_WASM_BACKEND=1 $(LINK_EMCC) fe.o ge.o keypair.o sc.o sha512.o sign.o verify.o memory.o \
+	#	-s EXPORTED_FUNCTIONS='["_ed25519_sign","_ed25519_verify","_get_static_memory_start","_get_static_memory_size"]' \
 	#	-s NO_EXIT_RUNTIME=1 -s MODULARIZE=1 -s EXPORT_NAME="'ED25519'" \
 	#	-s LIBRARY_DEPS_TO_AUTOEXPORT='[]' -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE="[]" -s EXPORTED_RUNTIME_METHODS='[]' \
 	#	-s NO_FILESYSTEM=1 -s DISABLE_EXCEPTION_CATCHING=1 \
