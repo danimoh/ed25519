@@ -1,5 +1,5 @@
 // predefine some memory which can be accessed from javascript side withoud the need to malloc
-#define STATIC_MEMORY_SIZE 1024
+#define STATIC_MEMORY_SIZE 4096
 unsigned char static_memory[STATIC_MEMORY_SIZE];
 
 unsigned char* get_static_memory_start() {

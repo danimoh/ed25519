@@ -28,7 +28,6 @@ class ED25519 {
                 ED25519._handler.onRuntimeInitialized = resolve;
             }))
             .then(() => {
-                console.log('got the handler');
                 const memoryStart = ED25519._handler._get_static_memory_start();
                 const memorySize = ED25519._handler._get_static_memory_size();
                 if (memorySize < ED25519.PUBLIC_KEY_SIZE + ED25519.PRIVATE_KEY_SIZE + ED25519.SIGNATURE_SIZE) {
@@ -104,7 +103,7 @@ class ED25519 {
     /**
      * Verifies the signature on the given message using public_key. signature must be a readable 64 byte buffer.
      * message must have at least message_len bytes to be read and must fit ED25519._messageBuffer.
-     * Returns 1 if the signature matches, 0 otherwise.
+     * Returns true if the signature matches, false otherwise.
      */
     static async verify(signature, message, publicKey) {
         await ED25519._awaitHandler();
@@ -117,7 +116,7 @@ class ED25519 {
         ED25519._signatureBuffer.set(signature);
         ED25519._messageBuffer.set(message);
         ED25519._pubKeyBuffer.set(publicKey);
-        return ED25519._handler._ed25519_verify(ED25519._signaturePointer, ED25519._messagePointer, messageLength,
+        return !!ED25519._handler._ed25519_verify(ED25519._signaturePointer, ED25519._messagePointer, messageLength,
             ED25519._pubKeyPointer);
     }
 }
