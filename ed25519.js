@@ -21,8 +21,8 @@ class ED25519 {
             })
             .then(() => new Promise((resolve, reject) => {
                 ED25519._handler = ED25519_HANDLER({
-                    wasmBinaryFile: ED25519._path + 'ed25519-wasm.wasm',
-                    memoryInitializerPrefixURL: ED25519._path
+                    wasmBinaryFile: ED25519._dependenciesPath + 'ed25519-wasm.wasm',
+                    memoryInitializerPrefixURL: ED25519._dependenciesPath
                 });
                 // wait until the handler is ready
                 ED25519._handler.onRuntimeInitialized = resolve;
@@ -51,11 +51,12 @@ class ED25519 {
     }
 
 
-    static setPath(path) {
+    static setPath(path, dependenciesPath = path) {
         if (ED25519._handlerPromise) {
             throw Error('path must be set before first call of any method');
         }
         ED25519._path = path;
+        ED25519._dependenciesPath = dependenciesPath;
     }
 
 
@@ -136,6 +137,7 @@ ED25519._signaturePointer = null;
 ED25519._messagePointer = null;
 
 ED25519._path = '../node_modules/ed25519/dist/';
+ED25519._dependenciesPath = ED25519._path;
 ED25519._handler = null;
 ED25519._handlerPromise = null;
 

@@ -1,6 +1,6 @@
 {
   "name": "ed25519",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "ED25519 signatures ported to WebAssembly",
   "main": "ed25519.js",
   "scripts": {
