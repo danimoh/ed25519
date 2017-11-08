@@ -27,7 +27,7 @@ async function test() {
         shared_secret = new Uint8Array(32),
         other_shared_secret = new Uint8Array(32),
         signature = new Uint8Array(64);
-    let start, end, i;
+    let start, end, time, i;
     const message = Uint8Array.from('Hello world.'.split('').map(c => c.charCodeAt(0)));
 
     /* create a random private key and derive the public key */
@@ -62,7 +62,8 @@ async function test() {
         getRandomValues(private_key);
     }
     end = now();
-    console.log("per private key:", (end - start) * 1000 / i);
+    time = (end - start) * 1000 / i;
+    console.log("per private key:", time, '- executions per second:', Math.floor(1000000 / time));
 
     console.log("testing public key derivation performance: ");
     start = now();
@@ -70,7 +71,8 @@ async function test() {
         await ED25519.derivePublicKey(public_key, private_key);
     }
     end = now();
-    console.log("per derivation", (end - start) * 1000 / i);    
+    time = (end - start) * 1000 / i;
+    console.log("per derivation", time, '- executions per second:', Math.floor(1000000 / time));
 
     console.log("testing sign performance: ");
     start = now();
@@ -78,7 +80,8 @@ async function test() {
         await ED25519.sign(signature, message, public_key, private_key);
     }
     end = now();
-    console.log("per signature", (end - start) * 1000 / i);
+    time = (end - start) * 1000 / i
+    console.log("per signature", time, '- executions per second:', Math.floor(1000000 / time));
 
     console.log("testing verify performance: ");
     start = now();
@@ -86,7 +89,8 @@ async function test() {
         await ED25519.verify(signature, message, public_key);
     }
     end = now();
-    console.log("per verification", (end - start) * 1000 / i);
+    time = (end - start) * 1000 / i;
+    console.log("per verification", time, '- executions per second:', Math.floor(1000000 / time));
 
     console.log("testing overhead by copy to the webassembly memory");
     start = now();
@@ -96,7 +100,8 @@ async function test() {
         ED25519._signatureBuffer.set(signature);
     }
     end = now();
-    console.log("per copy of publicKey + privateKey + signature", (end - start) * 1000 / i);
+    time = (end - start) * 1000 / i;
+    console.log("per copy of publicKey + privateKey + signature", time, '- executions per second:', Math.floor(1000000 / time));
 
    /* 
     console.log("testing overhead for stackSave + stackAlloc + stackRestore");
@@ -107,7 +112,8 @@ async function test() {
         ED25519._handler.stackRestore(stack);
     }
     end = now();
-    console.log("per stackSave + stackAlloc + stackRestore", (end - start) * 1000 / i);
+    time = (end - start) * 1000 / i;
+    console.log("per stackSave + stackAlloc + stackRestore", time, '- executions per second:', Math.floor(1000000 / time));
 
     const testBuffer = new Uint8Array(256);
     console.log("testing overhead for typed array creation");
@@ -118,17 +124,21 @@ async function test() {
         const sign = new Uint8Array(testBuffer.buffer, 115, 64);
     }
     end = now();
-    console.log("per buffer creation for priv + pub + signature", (end - start) * 1000 / i);  
+    time = (end - start) * 1000 / i;
+    console.log("per buffer creation for priv + pub + signature", time, '- executions per second:', Math.floor(1000000 / time));
     */
 }
 
-const timeout = setTimeout(() => {}, 10 * 60 * 1000); // timeout to keep node.js alive
-test()
-.then(() => {
-    console.log('tests finished.');
-    clearTimeout(timeout);
-})
-.catch(e => {
-    console.error('an exception was thrown.', e);
-    clearTimeout(timeout);
-});
+if (typeof window === 'undefined') {
+    // in nodejs trigger the tests directly from the js file
+    const timeout = setTimeout(() => {}, 10 * 60 * 1000); // timeout to keep node.js alive
+    test()
+    .then(() => {
+        console.log('tests finished.');
+        clearTimeout(timeout);
+    })
+    .catch(e => {
+        console.error('an exception was thrown.', e);
+        clearTimeout(timeout);
+    });
+}

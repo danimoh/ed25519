@@ -2,9 +2,8 @@ Ed25519
 =======
 
 This is a portable implementation of [Ed25519](http://ed25519.cr.yp.to/) based
-on the SUPERCOP "ref10" implementation. Additionally there is key exchanging
-and scalar addition included to further aid building a PKI using Ed25519. All
-code is licensed under the permissive zlib license.
+on the SUPERCOP "ref10" implementation. All code is licensed under the permissive
+zlib license.
 
 The code is pure ANSI C without any dependencies. The code has been compiled
 to WebAssembly with an asm.js fallback and wrapped into a Javascript API.
@@ -15,57 +14,55 @@ Performance
 
 WebAssembly in browser performance:
 
-    Key generation: 105us (9508 per second)
-    Message signing (short message): 106us (9458 per second)
-    Message verifying (short message): 192us (5211 per second)
-    Scalar addition: 102us (9791 per second)
-    Key exchange: 198us (5055 per second)
+    Private Key generation: 1.2us (827472 per second)
+    Public Key derivation: 86.4us (11568 per second)
+    Message signing (short message): 87.7us (11401 per second)
+    Message verifying (short message): 180.0us (5553 per second)
 
 asm.js fallback in browser performance:
 
-    Key generation: 3031us (330 per second)
-    Message signing (short message): 3195us (313 per second)
-    Message verifying (short message): 11800us (85 per second)
-    Scalar addition: 3403us (294 per second)
-    Key exchange: 10484us (95 per second)
+    Private Key generation: 1.2us (827472 per second)
+    Public key derivation: 3107.9us (321 per second)
+    Message signing (short message): 3252.7us (307 per second)
+    Message verifying (short message): 11778.9us (84 per second)
 
 WebAssembly in node.js performance:
 
-    Key generation: 82us (12195 per second)
-    Message signing (short message): 85us (11765 per second)
-    Message verifying (short message): 173us (5780 per second)
-    Scalar addition: 84us (11905 per second)
-    Key exchange: 179us (5587 per second)    
+    Private Key generation: 4.8us (207429 per second)
+    Public key derivation: 81.9us (12202 per second)
+    Message signing (short message): 84.0us (11898 per second)
+    Message verifying (short message): 171.4us (5831 per second)
 
 Comparison to native binary compiled from C:
 
-    Key generation: 43us (23255 per second)
-    Message signing (short message): 44us (22727 per second)
-    Message verifying (short message): 113us (8849 per second)
-    Scalar addition: 43us (23255 per second)
-    Key exchange: 109us (9174 per second)    
+    Private Key generation: 23.7us (42039 per second)
+    Public key derivation: 43.0us (23227 per second)
+    Message signing (short message): 44.0us (22696 per second)
+    Message verifying (short message): 118.2us (8455 per second)
 
 Comparison to the WebCrypto API (window.crypto.subtle):
 
-    Key generation: 139us (7194 per second)
-    Message signing (short message): 145us (6877 per second)
-    Message verification (short message): 276us (3617 per second)
+    Private Key generation: 119.7us (8349 per second)
+    Message signing (short message): 115.0us (8690 per second)
+    Message verification (short message): 213.6us (4681 per second)
 
 
 
 Usage
 -----
 
-There are no defined types for seeds, private keys, public keys, shared secrets
-or signatures. Instead simple buffers are used with the following sizes:
+There are no defined types for private keys, public keys or signatures.
+Instead simple Uint8Arrays are used with the following sizes:
+ 
+signature: 64, 
+public key: 32, 
+private key: 32
 
-seed : 32
-signature : 64
-public key : 32
-private key : 64
-scalar : 32
-shared secret : 32
+Private keys are symply cryptographically secure random data, generated
+for example by window.crypto.getRandomValues() in the browser or
+require('crypto').randomFillSync in node.
 
+See test.js for usage examples.
 
 
 License

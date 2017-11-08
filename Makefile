@@ -26,7 +26,7 @@ emcc:
 	$(COMPILE_EMCC) src/memory.c -o memory.o
 
 	# compile to asm.js (might want to add -s ONLY_MY_CODE=1, see https://github.com/kripken/emscripten/issues/3955)
-	$(LINK_EMCC) -O3 fe.o ge.o keypair.o sc.o sha512.o sign.o verify.o memory.o \
+	$(LINK_EMCC) fe.o ge.o keypair.o sc.o sha512.o sign.o verify.o memory.o \
 		-s EXPORTED_FUNCTIONS='["_ed25519_sign","_ed25519_verify","_get_static_memory_start","_get_static_memory_size","_ed25519_public_key_derive"]' \
 		-s NO_EXIT_RUNTIME=1 -s MODULARIZE=1 -s EXPORT_NAME="'ED25519_HANDLER'" \
 		-s LIBRARY_DEPS_TO_AUTOEXPORT='[]' -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE="[]" -s EXPORTED_RUNTIME_METHODS='[]' \
@@ -35,7 +35,7 @@ emcc:
 		-o dist/ed25519-asm.js
 	
 	# compile to wasm
-	$(LINK_EMCC) -O3 fe.o ge.o keypair.o sc.o sha512.o sign.o verify.o memory.o \
+	$(LINK_EMCC) fe.o ge.o keypair.o sc.o sha512.o sign.o verify.o memory.o \
 		-s EXPORTED_FUNCTIONS='["_ed25519_sign","_ed25519_verify","_get_static_memory_start","_get_static_memory_size","_ed25519_public_key_derive"]' \
 		-s NO_EXIT_RUNTIME=1 -s MODULARIZE=1 -s EXPORT_NAME="'ED25519_HANDLER'" \
 		-s LIBRARY_DEPS_TO_AUTOEXPORT='[]' -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE="[]" -s EXPORTED_RUNTIME_METHODS='[]' \

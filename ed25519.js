@@ -141,10 +141,6 @@ ED25519._dependenciesPath = ED25519._path;
 ED25519._handler = null;
 ED25519._handlerPromise = null;
 
-if (typeof(Class) !== 'undefined') {
-    // support for nimiqs class system
-    Class.register(ED25519);
-}
 if (typeof(module) !== 'undefined') {
     module.exports = ED25519;
 }

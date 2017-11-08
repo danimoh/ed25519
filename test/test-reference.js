@@ -1108,4 +1108,16 @@ async function testReference() {
     console.log('Tests successfully finished.');
 }
 
-testReference();
+if (typeof window === 'undefined') {
+    // in nodejs trigger the tests directly from the js file
+    const timeout = setTimeout(() => {}, 10 * 60 * 1000); // timeout to keep node.js alive
+    testReference()
+    .then(() => {
+        console.log('tests finished.');
+        clearTimeout(timeout);
+    })
+    .catch(e => {
+        console.error('an exception was thrown.', e);
+        clearTimeout(timeout);
+    });
+}

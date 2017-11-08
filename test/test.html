@@ -9,5 +9,11 @@
     <div>Open the console.</div>
     <script src="test.js"></script>
     <script src="test-reference.js"></script>
+    <script type="text/javascript">
+        (async () => {
+            await test();
+            await testReference();
+        })();
+    </script>
 </body>
 </html>
