@@ -16,7 +16,9 @@ WebAssembly in browser performance:
 
     Private Key generation: 1.2us (827472 per second)
     Public Key derivation: 86.4us (11568 per second)
+    Public Key derivation (with private key trace removal): 238.8us (4187 per second)
     Message signing (short message): 87.7us (11401 per second)
+    Message signing (short message, with private key trace removal): 236.3us (4231 per second)
     Message verifying (short message): 180.0us (5553 per second)
 
 asm.js fallback in browser performance:

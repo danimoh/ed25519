@@ -95,9 +95,9 @@ async function test() {
     console.log("testing overhead by copy to the webassembly memory");
     start = now();
     for (i = 0; i < 10000; ++i) {
-        ED25519._pubKeyBuffer.set(public_key);
-        ED25519._privKeyBuffer.set(private_key);
-        ED25519._signatureBuffer.set(signature);
+        ED25519._properties.pubKeyBuffer.set(public_key);
+        ED25519._properties.privKeyBuffer.set(private_key);
+        ED25519._properties.signatureBuffer.set(signature);
     }
     end = now();
     time = (end - start) * 1000 / i;
