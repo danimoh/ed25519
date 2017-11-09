@@ -1,3 +1,5 @@
+'use strict';
+
 // reference data taken from sign.input from the python ed25519 python implementation (see http://ed25519.cr.yp.to/software.html)
 // Format description:
 // fields on each input line: sk (signing / private key), pk (public key), m (message), sm (signed message)

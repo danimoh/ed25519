@@ -31,7 +31,7 @@ emcc:
 		-s NO_EXIT_RUNTIME=1 -s MODULARIZE=1 -s EXPORT_NAME="'ED25519_HANDLER'" \
 		-s LIBRARY_DEPS_TO_AUTOEXPORT='[]' -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE="[]" -s EXPORTED_RUNTIME_METHODS='[]' \
 		-s NO_FILESYSTEM=1 -s DISABLE_EXCEPTION_CATCHING=1 -s ELIMINATE_DUPLICATE_FUNCTIONS=1 \
-		--post-js post-js.js \
+		-s TOTAL_STACK=1048576 --post-js post-js.js \
 		--closure 1 \
 		-o dist/ed25519-asm.js
 	
@@ -41,7 +41,7 @@ emcc:
 		-s NO_EXIT_RUNTIME=1 -s MODULARIZE=1 -s EXPORT_NAME="'ED25519_HANDLER'" \
 		-s LIBRARY_DEPS_TO_AUTOEXPORT='[]' -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE="[]" -s EXPORTED_RUNTIME_METHODS='[]' \
 		-s NO_FILESYSTEM=1 -s DISABLE_EXCEPTION_CATCHING=1 \
-		--post-js post-js.js \
+		-s TOTAL_STACK=1048576 --post-js post-js.js \
 		-s WASM=1 --closure 1 \
 		-o dist/ed25519-wasm.js
 	

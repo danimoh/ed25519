@@ -1,3 +1,5 @@
+'use strict';
+
 let getRandomValues;
 let now;
 if (typeof(window) === 'undefined') {

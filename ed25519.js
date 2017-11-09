@@ -23,7 +23,7 @@ class ED25519 {
                 ED25519._properties.handler = ED25519_HANDLER({
                     wasmBinaryFile: ED25519._properties.dependenciesPath + 'ed25519-wasm.wasm',
                     memoryInitializerPrefixURL: ED25519._properties.dependenciesPath,
-                    onRuntimeInitialized: resolve,
+                    onRuntimeInitialized: resolve
                 });
             }))
             .then(() => {
@@ -57,13 +57,17 @@ class ED25519 {
 
                 // freeze methods (see comment about freeze below)
                 Object.freeze(ED25519._properties);
-                Object.freeze(ED25519._properties.handler);
-                Object.defineProperty(ED25519._properties.privKeyBuffer, 'fill', {
-                    value: Uint8Array.prototype.fill.bind(ED25519._properties.privKeyBuffer)
-                });
-                Object.defineProperty(ED25519._properties.privKeyBuffer, 'set', {
-                    value: Uint8Array.prototype.set.bind(ED25519._properties.privKeyBuffer)
-                });
+                [ED25519._properties.pubKeyBuffer, ED25519._properties.privKeyBuffer, ED25519._properties.signatureBuffer,
+                    ED25519._properties.messageBuffer].forEach(buffer => {
+                        Object.defineProperty(buffer, 'fill', {
+                            value: Uint8Array.prototype.fill.bind(buffer)
+                        });
+                        Object.defineProperty(buffer, 'set', {
+                            value: Uint8Array.prototype.set.bind(buffer)
+                        });
+                    });
+                // deep freeze the handler (the handler and handler.asm might be enough, but just to be sure)
+                ED25519.deepFreeze(ED25519._properties.handler);
             });
         }
         return ED25519._properties.handlerPromise;
@@ -153,6 +157,26 @@ class ED25519 {
         return !!ED25519._properties.handler._ed25519_verify(ED25519._properties.signaturePointer, ED25519._properties.messagePointer, messageLength,
             ED25519._properties.pubKeyPointer);
     }
+
+
+    static deepFreeze(obj) {
+        if (obj._frozen) {
+            return;
+        }
+        try {
+            Object.freeze(obj);
+            obj._frozen = true;
+        } catch(e) {
+            return;
+        }
+        const propNames = Object.getOwnPropertyNames(obj);
+        propNames.forEach(function(name) {
+            const prop = obj[name];
+            if (typeof prop === 'object' && prop !== null) {
+                ED25519.deepFreeze(prop);
+            }
+        });
+    }
 }
 
 ED25519.PUBLIC_KEY_SIZE = 32;
@@ -180,10 +204,11 @@ ED25519._properties = {
     removePrivKeyTraces: true
 };
 
-// Freeze the object to avoid that an attacker can replace the methods and steal the private key,
-// e.g. by asking the user to post something in the developer tools under false claims or xss.
-// Note however that the attacker can change the _properties (including the handlerPromise) before
-// _awaitHandler has finished. So you might want to manually call that method at start up.
+// Freeze the object to avoid that an attacker can replace the methods and e.g. steal the private key
+// or let the signer sign a message he didn't want to sign, e.g. by asking the user to post something
+// in the developer tools under false claims or xss. Note however that the attacker can change the
+// _properties (including the handlerPromise) before _awaitHandler has finished. So you might want to
+// manually call that method at start up.
 Object.freeze(ED25519);
 
 if (typeof(module) !== 'undefined') {
